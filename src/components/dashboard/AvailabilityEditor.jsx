@@ -1,10 +1,17 @@
 import React, { useState } from 'react';
 import { Plus, Trash2, Clock, X } from 'lucide-react';
+import availabilityService from '../../services/availability/availability.service';
+import skillsService from '../../services/skills/skills.service';
+import { useAuth } from '../auth/AuthContext';
 
 const AvailabilityEditor = ({ availabilities = [], onChange, supportAreas = [], onSupportAreasChange }) => {
+  const { user } = useAuth();
   const [localAvailabilities, setLocalAvailabilities] = useState(availabilities);
   const [localSupportAreas, setLocalSupportAreas] = useState(supportAreas);
   const [newSkill, setNewSkill] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState('');
+  const [success, setSuccess] = useState('');
 
   const daysOfWeek = [
     { value: 0, label: 'Sunday'},
@@ -16,29 +23,82 @@ const AvailabilityEditor = ({ availabilities = [], onChange, supportAreas = [], 
     { value: 6, label: 'Saturday'}
   ];
 
-  const addAvailability = () => {
+  const addAvailability = async () => {
+    setIsLoading(true);
+    setError('');
+    
     const newAvailability = {
       dayOfWeek: 1,
       startTime: '09:00',
-      endTime: '10:00'
+      endTime: '10:00',
+      userId: user?.id
     };
-    const updated = [...localAvailabilities, newAvailability];
-    setLocalAvailabilities(updated);
-    onChange?.(updated);
+    
+    try {
+      const response = await availabilityService.createAvailability(newAvailability);
+      const updated = [...localAvailabilities, response.data || newAvailability];
+      setLocalAvailabilities(updated);
+      onChange?.(updated);
+      setSuccess('Availability slot added successfully!');
+      setTimeout(() => setSuccess(''), 3000);
+    } catch (error) {
+      console.error('Error adding availability:', error);
+      setError(error.message);
+      setTimeout(() => setError(''), 5000);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
-  const removeAvailability = (index) => {
-    const updated = localAvailabilities.filter((_, i) => i !== index);
-    setLocalAvailabilities(updated);
-    onChange?.(updated);
+  const removeAvailability = async (index) => {
+    const availability = localAvailabilities[index];
+    
+    if (!availability.id) {
+      // If no ID, just remove from local state
+      const updated = localAvailabilities.filter((_, i) => i !== index);
+      setLocalAvailabilities(updated);
+      onChange?.(updated);
+      return;
+    }
+    
+    setIsLoading(true);
+    setError('');
+    
+    try {
+      await availabilityService.deleteAvailability(availability.id);
+      const updated = localAvailabilities.filter((_, i) => i !== index);
+      setLocalAvailabilities(updated);
+      onChange?.(updated);
+      setSuccess('Availability slot removed successfully!');
+      setTimeout(() => setSuccess(''), 3000);
+    } catch (error) {
+      console.error('Error removing availability:', error);
+      setError(error.message);
+      setTimeout(() => setError(''), 5000);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
-  const updateAvailability = (index, field, value) => {
+  const updateAvailability = async (index, field, value) => {
+    const availability = localAvailabilities[index];
     const updated = localAvailabilities.map((availability, i) =>
       i === index ? { ...availability, [field]: field === 'dayOfWeek' ? parseInt(value) : value } : availability
     );
     setLocalAvailabilities(updated);
     onChange?.(updated);
+    
+    // If availability has an ID, update it on the server
+    if (availability.id) {
+      try {
+        const updatedAvailability = { ...availability, [field]: field === 'dayOfWeek' ? parseInt(value) : value };
+        await availabilityService.updateAvailability(availability.id, updatedAvailability);
+      } catch (error) {
+        console.error('Error updating availability:', error);
+        setError('Failed to update availability on server');
+        setTimeout(() => setError(''), 5000);
+      }
+    }
   };
 
   const getDayName = (dayOfWeek) => {
@@ -53,25 +113,67 @@ const AvailabilityEditor = ({ availabilities = [], onChange, supportAreas = [], 
     return grouped;
   };
 
-  const addSkill = () => {
+  const addSkill = async () => {
     if (newSkill.trim() && !localSupportAreas.includes(newSkill.trim())) {
+      setIsLoading(true);
+      setError('');
+      
       const updated = [...localSupportAreas, newSkill.trim()];
-      setLocalSupportAreas(updated);
-      setNewSkill('');
-      onSupportAreasChange?.(updated);
+      
+      try {
+        await skillsService.updateSkills({ skills: [newSkill.trim()] });
+        setLocalSupportAreas(updated);
+        setNewSkill('');
+        onSupportAreasChange?.(updated);
+        setSuccess('Skill added successfully!');
+        setTimeout(() => setSuccess(''), 3000);
+      } catch (error) {
+        console.error('Error adding skill:', error);
+        setError(error.message);
+        setTimeout(() => setError(''), 5000);
+      } finally {
+        setIsLoading(false);
+      }
     }
   };
 
-  const removeSkill = (skillToRemove) => {
-    const updated = localSupportAreas.filter(skill => skill !== skillToRemove);
-    setLocalSupportAreas(updated);
-    onSupportAreasChange?.(updated);
+  const removeSkill = async (skillToRemove) => {
+    setIsLoading(true);
+    setError('');
+    
+    try {
+      await skillsService.deleteSkill({ skill: skillToRemove });
+      const updated = localSupportAreas.filter(skill => skill !== skillToRemove);
+      setLocalSupportAreas(updated);
+      onSupportAreasChange?.(updated);
+      setSuccess('Skill removed successfully!');
+      setTimeout(() => setSuccess(''), 3000);
+    } catch (error) {
+      console.error('Error removing skill:', error);
+      setError(error.message);
+      setTimeout(() => setError(''), 5000);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const availabilitiesByDay = getAvailabilitiesByDay();
 
   return (
     <div className="space-y-6">
+      {/* Success/Error Messages */}
+      {success && (
+        <div className="p-3 bg-green-50 border border-green-200 rounded-md">
+          <p className="text-sm text-green-600">{success}</p>
+        </div>
+      )}
+      
+      {error && (
+        <div className="p-3 bg-red-50 border border-red-200 rounded-md">
+          <p className="text-sm text-red-600">{error}</p>
+        </div>
+      )}
+      
       {/* Weekly Grid Overview */}
       <div className="bg-gray-50 rounded-md shadow-sm border border-gray-200 p-4">
         <h4 className="mb-3 flex items-center gap-2 text-lg font-semibold text-gray-900">
@@ -199,7 +301,8 @@ const AvailabilityEditor = ({ availabilities = [], onChange, supportAreas = [], 
                   <div className="pt-2">
                     <button
                       onClick={() => removeAvailability(index)}
-                      className="w-full flex items-center justify-center gap-2 px-3 py-2 text-xs bg-gray-200 text-red-700 rounded-md hover:text-red-500 transition-colors"
+                      disabled={isLoading}
+                      className="w-full flex items-center justify-center gap-2 px-3 py-2 text-xs bg-gray-200 text-red-700 rounded-md hover:text-red-500 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                       <Trash2 className="w-4 h-4" />
                       Remove Slot
@@ -218,10 +321,15 @@ const AvailabilityEditor = ({ availabilities = [], onChange, supportAreas = [], 
         <div className="flex justify-start">
           <button
             onClick={addAvailability}
-            className="flex items-center gap-2 px-4 py-2 text-sm bg-blue-600 hover:bg-blue-700 text-white rounded-md transition-colors shadow-sm"
+            disabled={isLoading}
+            className="flex items-center gap-2 px-4 py-2 text-sm bg-blue-600 hover:bg-blue-700 text-white rounded-md transition-colors shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            <Plus className="w-4 h-4" />
-            Add Slot
+            {isLoading ? (
+              <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+            ) : (
+              <Plus className="w-4 h-4" />
+            )}
+            {isLoading ? 'Adding...' : 'Add Slot'}
           </button>
         </div>
       </div>
@@ -243,6 +351,7 @@ const AvailabilityEditor = ({ availabilities = [], onChange, supportAreas = [], 
                   <button
                     onClick={() => removeSkill(skill)}
                     className="ml-2 text-blue-600 hover:text-blue-800"
+                    disabled={isLoading}
                   >
                     <X className="w-3 h-3" />
                   </button>
@@ -269,9 +378,12 @@ const AvailabilityEditor = ({ availabilities = [], onChange, supportAreas = [], 
               <button
                 onClick={addSkill}
                 disabled={!newSkill.trim()}
-                className="px-4 py-2 bg-navy text-white rounded-md hover:bg-navy-light disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                className="px-4 py-2 bg-navy text-white rounded-md hover:bg-navy-light disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center gap-2"
               >
-                Add
+                {isLoading ? (
+                  <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                ) : null}
+                {isLoading ? 'Adding...' : 'Add'}
               </button>
             </div>
 
@@ -283,14 +395,13 @@ const AvailabilityEditor = ({ availabilities = [], onChange, supportAreas = [], 
                   <button
                     key={skill}
                     onClick={() => {
-                      if (!localSupportAreas.includes(skill)) {
-                        const updated = [...localSupportAreas, skill];
-                        setLocalSupportAreas(updated);
-                        onSupportAreasChange?.(updated);
+                      if (!localSupportAreas.includes(skill) && !isLoading) {
+                        setNewSkill(skill);
+                        addSkill();
                       }
                     }}
-                    disabled={localSupportAreas.includes(skill)}
-                    className="px-2 py-1 bg-gray-100 text-gray-600 rounded-md text-sm hover:bg-gray-200 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                    disabled={localSupportAreas.includes(skill) || isLoading}
+                    className="px-2 py-1 bg-gray-100 text-gray-600 rounded-md text-sm hover:bg-gray-200 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center gap-1"
                   >
                     {skill}
                   </button>
