@@ -5,7 +5,7 @@ class AvailabilityService {
     try {
       console.log('AvailabilityService: Updating availability:', { id, availabilityData });
       
-      const response = await axiosClient.patch(`/availability/${id}`, availabilityData);
+      const response = await axiosClient.patch(`/study-buddy/availability/${id}`, availabilityData);
       console.log('AvailabilityService: Availability updated successfully:', response.data);
       return response.data;
     } catch (error) {
@@ -31,7 +31,7 @@ class AvailabilityService {
     try {
       console.log('AvailabilityService: Creating availability:', availabilityData);
       
-      const response = await axiosClient.post('/availability', availabilityData);
+      const response = await axiosClient.post('/study-buddy/availability', availabilityData);
       console.log('AvailabilityService: Availability created successfully:', response.data);
       return response.data;
     } catch (error) {
