@@ -44,7 +44,7 @@ class AvailabilityService {
     try {
       console.log('AvailabilityService: Fetching user availabilities:', userId);
       
-      const response = await axiosClient.get(`/user/${userId}/availabilities`);
+      const response = await axiosClient.get(`/study-budddy/me/availability`);
       console.log('AvailabilityService: Availabilities fetched successfully:', response.data);
       return response.data;
     } catch (error) {
