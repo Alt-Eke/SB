@@ -5,7 +5,7 @@ class AvailabilityService {
     try {
       console.log('AvailabilityService: Updating availability:', { id, availabilityData });
       
-      const response = await axiosClient.patch(`/study-budy/availability/${id}`, availabilityData);
+      const response = await axiosClient.patch(`/availability/${id}`, availabilityData);
       console.log('AvailabilityService: Availability updated successfully:', response.data);
       return response.data;
     } catch (error) {
@@ -18,7 +18,7 @@ class AvailabilityService {
     try {
       console.log('AvailabilityService: Deleting availability:', id);
       
-      const response = await axiosClient.delete(`/study-budy/availability/${id}`);
+      const response = await axiosClient.delete(`/availability/${id}`);
       console.log('AvailabilityService: Availability deleted successfully:', response.data);
       return response.data;
     } catch (error) {
@@ -31,7 +31,7 @@ class AvailabilityService {
     try {
       console.log('AvailabilityService: Creating availability:', availabilityData);
       
-      const response = await axiosClient.post('/study-budy/availability', availabilityData);
+      const response = await axiosClient.post('/availability', availabilityData);
       console.log('AvailabilityService: Availability created successfully:', response.data);
       return response.data;
     } catch (error) {
@@ -44,7 +44,7 @@ class AvailabilityService {
     try {
       console.log('AvailabilityService: Fetching user availabilities:', userId);
       
-      const response = await axiosClient.get(`/study-budy/availability/user/${userId}`);
+      const response = await axiosClient.get(`/availability/user/${userId}`);
       console.log('AvailabilityService: Availabilities fetched successfully:', response.data);
       return response.data;
     } catch (error) {
