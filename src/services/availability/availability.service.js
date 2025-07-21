@@ -18,7 +18,7 @@ class AvailabilityService {
     try {
       console.log('AvailabilityService: Deleting availability:', id);
       
-      const response = await axiosClient.delete(`/availability/${id}`);
+      const response = await axiosClient.delete(`/study-buddy/availability/${id}`);
       console.log('AvailabilityService: Availability deleted successfully:', response.data);
       return response.data;
     } catch (error) {
