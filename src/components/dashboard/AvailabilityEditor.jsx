@@ -344,7 +344,7 @@ const AvailabilityEditor = ({ availabilities = [], onChange }) => {
                   </>
                 ) : (
                   <>
-                    <className="w-4 h-4" />
+                    <Clock className="w-4 h-4" />
                     <span>Save Changes</span>
                   </>
                 )}
