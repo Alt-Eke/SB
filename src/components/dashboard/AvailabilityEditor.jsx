@@ -335,7 +335,7 @@ const AvailabilityEditor = ({ availabilities = [], onChange }) => {
               <button
                 onClick={saveChanges}
                 disabled={isSaving}
-                className="px-4 py-2 bg-blue-600 text-white text-md rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center space-x-2"
+                className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center space-x-2"
               >
                 {isSaving ? (
                   <>
@@ -344,8 +344,7 @@ const AvailabilityEditor = ({ availabilities = [], onChange }) => {
                   </>
                 ) : (
                   <>
-                    <Clock className="w-4 h-4" />
-                    <span className="text-sm">Save Changes</span>
+                    <span>Save Changes</span>
                   </>
                 )}
               </button>
