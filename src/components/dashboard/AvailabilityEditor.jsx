@@ -149,7 +149,6 @@ const AvailabilityEditor = ({ availabilities = [], onChange }) => {
 
   return (
     <div className="space-y-6">
-    
 
       {/* Success/Error Messages */}
       {success && (
@@ -321,7 +320,7 @@ const AvailabilityEditor = ({ availabilities = [], onChange }) => {
       {/* Save Changes Button */}
       {hasUnsavedChanges && (
         <div className="sticky bottom-4 flex justify-center">
-          <div className="bg-white rounded-lg shadow-lg border border-gray-200 p-4 flex items-center space-x-4">
+          <div className="bg-white rounded-lg shadow-lg border border-gray-200 p-2 flex items-center space-x-4">
             <div className="flex items-center space-x-2 text-sm text-gray-600">
               <Clock className="w-4 h-4 text-yellow-500" />
               <span>You have unsaved availability changes</span>
