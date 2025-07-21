@@ -149,31 +149,7 @@ const AvailabilityEditor = ({ availabilities = [], onChange }) => {
 
   return (
     <div className="space-y-6">
-      {/* Unsaved Changes Warning */}
-      {hasUnsavedChanges && (
-        <div className="p-4 bg-yellow-50 border border-yellow-200 rounded-md">
-          <div className="flex items-center justify-between">
-            <p className="text-sm text-yellow-800">
-              You have unsaved changes. Don't forget to save them!
-            </p>
-            <div className="flex space-x-2">
-              <button
-                onClick={discardChanges}
-                className="text-sm text-yellow-600 hover:text-yellow-800 underline"
-              >
-                Discard Changes
-              </button>
-              <button
-                onClick={saveChanges}
-                disabled={isSaving}
-                className="px-3 py-1 bg-yellow-600 text-white text-sm rounded hover:bg-yellow-700 disabled:opacity-50"
-              >
-                {isSaving ? 'Saving...' : 'Save Changes'}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+    
 
       {/* Success/Error Messages */}
       {success && (
