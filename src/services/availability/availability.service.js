@@ -44,11 +44,13 @@ class AvailabilityService {
     try {
       console.log('AvailabilityService: Fetching user availabilities:', userId);
       
-      const response = await axiosClient.get(`/study-budddy/me/availability`);
+      const response = await axiosClient.get(`/user/${userId}/availabilities`);
       console.log('AvailabilityService: Availabilities fetched successfully:', response.data);
       return response.data;
     } catch (error) {
       console.error('AvailabilityService: Error fetching availabilities:', error);
+      console.error('AvailabilityService: Error response:', error.response?.data);
+      console.error('AvailabilityService: Error status:', error.response?.status);
       throw new Error(error.response?.data?.message || 'Failed to fetch availabilities');
     }
   }
