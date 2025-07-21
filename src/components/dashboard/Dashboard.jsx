@@ -6,7 +6,8 @@ import SupportTickets from './SupportTickets';
 import FindPeers from './FindPeers';
 import AvailabilityEditor from './AvailabilityEditor';
 import NotificationsFeed from './NotificationsFeed';
-import { Calendar, Users, Ticket, Search, Clock, Bell } from 'lucide-react';
+import SkillsManagement from './SkillsManagement';
+import { Calendar, Users, Ticket, Search, Clock, Bell, BookOpen } from 'lucide-react';
 import availabilityService from '../../services/availability/availability.service';
 import skillsService from '../../services/skills/skills.service';
 
@@ -161,6 +162,7 @@ const Dashboard = () => {
     { id: 'tickets', label: 'Support Tickets', icon: Ticket },
     { id: 'find-peers', label: 'Find Peers', icon: Search },
     { id: 'availability', label: 'Availability', icon: Clock },
+    { id: 'skills', label: 'Skills & Modules', icon: BookOpen },
     { id: 'notifications', label: 'Notifications', icon: Bell }
   ];
 
@@ -216,8 +218,13 @@ const Dashboard = () => {
           <AvailabilityEditor 
             availabilities={userAvailabilities}
             onChange={setUserAvailabilities}
-            supportAreas={userSkills}
-            onSupportAreasChange={setUserSkills}
+          />
+        );
+      case 'skills':
+        return (
+          <SkillsManagement
+            skills={userSkills}
+            onSkillsChange={setUserSkills}
           />
         );
       case 'notifications':

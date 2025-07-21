@@ -4,12 +4,10 @@ import availabilityService from '../../services/availability/availability.servic
 import skillsService from '../../services/skills/skills.service';
 import { useAuth } from '../auth/AuthContext';
 
-const AvailabilityEditor = ({ availabilities = [], onChange, supportAreas = [], onSupportAreasChange }) => {
+const AvailabilityEditor = ({ availabilities = [], onChange }) => {
   const { user } = useAuth();
   const [localAvailabilities, setLocalAvailabilities] = useState(availabilities);
-  const [localSupportAreas, setLocalSupportAreas] = useState(supportAreas);
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
-  const [newSkill, setNewSkill] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState('');
@@ -30,11 +28,6 @@ const AvailabilityEditor = ({ availabilities = [], onChange, supportAreas = [], 
     setLocalAvailabilities(availabilities);
     setHasUnsavedChanges(false);
   }, [availabilities]);
-
-  // Update local support areas when props change
-  useEffect(() => {
-    setLocalSupportAreas(supportAreas);
-  }, [supportAreas]);
 
   const addAvailability = () => {
     setError('');
@@ -80,7 +73,7 @@ const AvailabilityEditor = ({ availabilities = [], onChange, supportAreas = [], 
     setHasUnsavedChanges(true);
   };
 
-  const saveAvailabilityChanges = async () => {
+  const saveChanges = async () => {
     setIsSaving(true);
     setError('');
     setSuccess('');
@@ -119,10 +112,10 @@ const AvailabilityEditor = ({ availabilities = [], onChange, supportAreas = [], 
       setLocalAvailabilities(finalAvailabilities);
       onChange?.(finalAvailabilities);
       setHasUnsavedChanges(false);
-      setSuccess('Availability changes saved successfully!');
+      setSuccess('Availability saved successfully!');
       setTimeout(() => setSuccess(''), 3000);
     } catch (error) {
-      console.error('Error saving availability changes:', error);
+      console.error('Error saving availability:', error);
       setError(error.message);
       setTimeout(() => setError(''), 5000);
     } finally {
@@ -135,67 +128,6 @@ const AvailabilityEditor = ({ availabilities = [], onChange, supportAreas = [], 
     setHasUnsavedChanges(false);
     setError('');
     setSuccess('');
-  };
-
-  const addSkill = () => {
-    if (newSkill.trim() && !localSupportAreas.includes(newSkill.trim())) {
-      const updated = [...localSupportAreas, newSkill.trim()];
-      setLocalSupportAreas(updated);
-      setNewSkill('');
-      setHasUnsavedChanges(true);
-    }
-  };
-
-  const removeSkill = (skillToRemove) => {
-    const updated = localSupportAreas.filter(skill => skill !== skillToRemove);
-    setLocalSupportAreas(updated);
-    setHasUnsavedChanges(true);
-  };
-
-  const saveSkillsChanges = async () => {
-    setIsSaving(true);
-    setError('');
-    
-    try {
-      // For now, we'll send all skills as an update
-      // You might want to implement a more sophisticated diff later
-      await skillsService.updateSkills({ skills: localSupportAreas });
-      onSupportAreasChange?.(localSupportAreas);
-      setSuccess('Skills saved successfully!');
-      setTimeout(() => setSuccess(''), 3000);
-    } catch (error) {
-      console.error('Error saving skills:', error);
-      setError(error.message);
-      setTimeout(() => setError(''), 5000);
-    } finally {
-      setIsSaving(false);
-    }
-  };
-
-  const saveAllChanges = async () => {
-    setIsSaving(true);
-    setError('');
-    setSuccess('');
-    
-    try {
-      // Save availability changes
-      if (hasUnsavedChanges) {
-        await saveAvailabilityChanges();
-      }
-      
-      // Save skills changes
-      await saveSkillsChanges();
-      
-      setHasUnsavedChanges(false);
-      setSuccess('All changes saved successfully!');
-      setTimeout(() => setSuccess(''), 3000);
-    } catch (error) {
-      console.error('Error saving changes:', error);
-      setError('Failed to save some changes. Please try again.');
-      setTimeout(() => setError(''), 5000);
-    } finally {
-      setIsSaving(false);
-    }
   };
 
   // Filter out deleted availabilities for display
@@ -232,11 +164,11 @@ const AvailabilityEditor = ({ availabilities = [], onChange, supportAreas = [], 
                 Discard Changes
               </button>
               <button
-                onClick={saveAllChanges}
+                onClick={saveChanges}
                 disabled={isSaving}
                 className="px-3 py-1 bg-yellow-600 text-white text-sm rounded hover:bg-yellow-700 disabled:opacity-50"
               >
-                {isSaving ? 'Saving...' : 'Save All Changes'}
+                {isSaving ? 'Saving...' : 'Save Changes'}
               </button>
             </div>
           </div>
@@ -257,7 +189,7 @@ const AvailabilityEditor = ({ availabilities = [], onChange, supportAreas = [], 
       )}
       
       {/* Weekly Grid Overview */}
-      <div className="bg-gray-50 rounded-md shadow-sm border border-gray-200 p-4">
+      <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
         <h4 className="mb-3 flex items-center gap-2 text-lg font-semibold text-gray-900">
           <Clock className="w-4" />
           Weekly Availability
@@ -287,7 +219,7 @@ const AvailabilityEditor = ({ availabilities = [], onChange, supportAreas = [], 
       </div>
 
       {/* Detailed Schedule */}
-      <div>
+      <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
         <h4 className="text-md font-medium text-gray-700 mb-1">Time Slots</h4>
 
         {displayAvailabilities.length > 0 && (
@@ -410,102 +342,40 @@ const AvailabilityEditor = ({ availabilities = [], onChange, supportAreas = [], 
         </div>
       </div>
 
-      {/* Support Areas */}
-      <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-        <h4 className="text-lg font-semibold text-gray-900 mb-2">Support Areas (Skills/Modules I Can Help With)</h4>
-
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          {/* Current Skills */}
-          <div>
-            <div className="flex flex-wrap gap-2 mb-4">
-              {localSupportAreas.map((skill, index) => (
-                <span
-                  key={index}
-                  className="inline-flex items-center px-3 py-1 rounded-full text-sm bg-blue-100 text-blue-800"
-                >
-                  {skill}
-                  <button
-                    onClick={() => removeSkill(skill)}
-                    className="ml-2 text-blue-600 hover:text-blue-800"
-                  >
-                    <X className="w-3 h-3" />
-                  </button>
-                </span>
-              ))}
-            </div>
-            {localSupportAreas.length === 0 && (
-              <p className="text-gray-500 italic">No skills added yet</p>
-            )}
-          </div>
-
-          {/* Add New Skill */}
-          <div>
-            <h3 className="text-md font-medium text-gray-900 mb-1">Add new Skill/Module</h3>
-            <div className="flex space-x-2">
-              <input
-                type="text"
-                value={newSkill}
-                onChange={(e) => setNewSkill(e.target.value)}
-                onKeyPress={(e) => e.key === 'Enter' && addSkill()}
-                placeholder="e.g., Data Structure and Algorithm, MySQL Databases"
-                className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-navy focus:border-transparent"
-              />
-              <button
-                onClick={addSkill}
-                disabled={!newSkill.trim()}
-                className="px-4 py-2 bg-navy text-white rounded-md hover:bg-navy-light disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center gap-2"
-              >
-                Add
-              </button>
-            </div>
-
-            {/* Suggested Skills */}
-            <div className="mt-4">
-              <h4 className="text-sm font-medium text-gray-700 mb-2">Suggested Skills</h4>
-              <div className="flex flex-wrap gap-2">
-                {['Web Infrastructure', 'Frontend development', 'Linux/Shell Scripting', 'Enterprise Web Development', 'DevOps', 'Mobile Development'].map(skill => (
-                  <button
-                    key={skill}
-                    onClick={() => {
-                      if (!localSupportAreas.includes(skill)) {
-                        setNewSkill(skill);
-                      }
-                    }}
-                    disabled={localSupportAreas.includes(skill)}
-                    className="px-2 py-1 bg-gray-100 text-gray-600 rounded-md text-sm hover:bg-gray-200 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center gap-1"
-                  >
-                    {skill}
-                  </button>
-                ))}
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-
       {/* Save Changes Button */}
       {hasUnsavedChanges && (
-        <div className="flex justify-center space-x-4 pt-4 border-t border-gray-200">
-          <button
-            onClick={discardChanges}
-            className="px-6 py-3 border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50 transition-colors"
-          >
-            Discard Changes
-          </button>
-          <button
-            onClick={saveAllChanges}
-            disabled={isSaving}
-            className="px-6 py-3 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center gap-2"
-          >
-            {isSaving ? (
-              <>
-                <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                Saving Changes...
-              </>
-            ) : (
-              'Save All Changes'
-            )}
-          </button>
+        <div className="sticky bottom-4 flex justify-center">
+          <div className="bg-white rounded-lg shadow-lg border border-gray-200 p-4 flex items-center space-x-4">
+            <div className="flex items-center space-x-2 text-sm text-gray-600">
+              <Clock className="w-4 h-4 text-yellow-500" />
+              <span>You have unsaved availability changes</span>
+            </div>
+            <div className="flex space-x-2">
+              <button
+                onClick={discardChanges}
+                className="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
+              >
+                Discard
+              </button>
+              <button
+                onClick={saveChanges}
+                disabled={isSaving}
+                className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center space-x-2"
+              >
+                {isSaving ? (
+                  <>
+                    <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                    <span>Saving...</span>
+                  </>
+                ) : (
+                  <>
+                    <Clock className="w-4 h-4" />
+                    <span>Save Changes</span>
+                  </>
+                )}
+              </button>
+            </div>
+          </div>
         </div>
       )}
     </div>
