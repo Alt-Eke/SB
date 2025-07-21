@@ -12,38 +12,6 @@ const SkillsManagement = ({ skills = [], onSkillsChange }) => {
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
 
-  // Predefined skill categories and suggestions
-  const skillCategories = {
-    'Frontend Development': [
-      'HTML/CSS', 'JavaScript', 'React', 'Vue.js', 'Angular', 'TypeScript', 
-      'Tailwind CSS', 'Bootstrap', 'SASS/SCSS', 'Responsive Design'
-    ],
-    'Backend Development': [
-      'Node.js', 'Python', 'Java', 'C#', 'PHP', 'Ruby', 'Go', 
-      'Express.js', 'Django', 'Spring Boot', 'ASP.NET'
-    ],
-    'Database & Data': [
-      'MySQL', 'PostgreSQL', 'MongoDB', 'Redis', 'SQLite', 
-      'Database Design', 'SQL Queries', 'Data Modeling'
-    ],
-    'DevOps & Infrastructure': [
-      'Docker', 'Kubernetes', 'AWS', 'Azure', 'Linux/Shell Scripting', 
-      'CI/CD', 'Git/GitHub', 'Web Infrastructure'
-    ],
-    'Mobile Development': [
-      'React Native', 'Flutter', 'iOS Development', 'Android Development', 
-      'Mobile UI/UX', 'App Store Deployment'
-    ],
-    'Data Science & AI': [
-      'Machine Learning', 'Python Data Analysis', 'Statistics', 
-      'Data Visualization', 'TensorFlow', 'PyTorch', 'Pandas', 'NumPy'
-    ],
-    'Other Skills': [
-      'Project Management', 'Agile/Scrum', 'Technical Writing', 
-      'API Design', 'Testing', 'Security', 'Performance Optimization'
-    ]
-  };
-
   // Update local skills when props change
   useEffect(() => {
     setLocalSkills(skills);
@@ -290,37 +258,6 @@ const SkillsManagement = ({ skills = [], onSkillsChange }) => {
             ))}
           </div>
         )}
-      </div>
-
-      {/* Suggested Skills */}
-      <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-        <h3 className="text-lg font-semibold text-gray-900 mb-4">Suggested Skills</h3>
-        <p className="text-gray-600 mb-4">Click on any skill below to add it to your profile</p>
-        
-        <div className="space-y-4">
-          {Object.entries(skillCategories).map(([category, categorySkills]) => {
-            const availableSkills = categorySkills.filter(skill => !localSkills.includes(skill));
-            
-            if (availableSkills.length === 0) return null;
-            
-            return (
-              <div key={category}>
-                <h4 className="text-sm font-medium text-gray-700 mb-2">{category}</h4>
-                <div className="flex flex-wrap gap-2">
-                  {availableSkills.map(skill => (
-                    <button
-                      key={skill}
-                      onClick={() => addSuggestedSkill(skill)}
-                      className="px-3 py-1 bg-gray-100 text-gray-700 rounded-md text-sm hover:bg-blue-100 hover:text-blue-800 transition-colors border border-gray-200 hover:border-blue-300"
-                    >
-                      + {skill}
-                    </button>
-                  ))}
-                </div>
-              </div>
-            );
-          })}
-        </div>
       </div>
 
       {/* Save Changes Button (Fixed at bottom when changes exist) */}
