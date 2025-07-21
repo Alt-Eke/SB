@@ -65,9 +65,12 @@ const AvailabilityEditor = ({ availabilities = [], onChange }) => {
   };
 
   const updateAvailability = (index, field, value) => {
-    const availability = localAvailabilities[index];
     const updated = localAvailabilities.map((availability, i) =>
-      i === index ? { ...availability, [field]: field === 'dayOfWeek' ? parseInt(value) : value } : availability
+      i === index ? { 
+        ...availability, 
+        [field]: field === 'dayOfWeek' ? parseInt(value) : value,
+        isModified: availability.id && !availability.isNew ? true : availability.isModified
+      } : availability
     );
     setLocalAvailabilities(updated);
     setHasUnsavedChanges(true);
@@ -85,27 +88,27 @@ const AvailabilityEditor = ({ availabilities = [], onChange }) => {
         await availabilityService.deleteAvailability(availability.id);
       }
       
-      // Handle new creations
+      // Handle new creations (POST requests)
       const toCreate = localAvailabilities.filter(a => a.isNew && !a.markedForDeletion);
       const createdAvailabilities = [];
       for (const availability of toCreate) {
-        const { isNew, markedForDeletion, ...availabilityData } = availability;
+        const { isNew, markedForDeletion, isModified, ...availabilityData } = availability;
         const response = await availabilityService.createAvailability(availabilityData);
         createdAvailabilities.push(response.data);
       }
       
-      // Handle updates
-      const toUpdate = localAvailabilities.filter(a => a.id && !a.isNew && !a.markedForDeletion);
+      // Handle updates to existing slots (PATCH requests)
+      const toUpdate = localAvailabilities.filter(a => a.id && !a.isNew && !a.markedForDeletion && a.isModified);
       const updatedAvailabilities = [];
       for (const availability of toUpdate) {
-        const { markedForDeletion, ...availabilityData } = availability;
+        const { markedForDeletion, isNew, isModified, ...availabilityData } = availability;
         const response = await availabilityService.updateAvailability(availability.id, availabilityData);
         updatedAvailabilities.push(response.data);
       }
       
       // Update final state
       const finalAvailabilities = [
-        ...localAvailabilities.filter(a => !a.isNew && !a.markedForDeletion),
+        ...localAvailabilities.filter(a => !a.isNew && !a.markedForDeletion).map(a => ({ ...a, isModified: false })),
         ...createdAvailabilities
       ];
       
